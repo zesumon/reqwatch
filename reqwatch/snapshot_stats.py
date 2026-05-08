@@ -41,6 +41,18 @@ def _avg_body_size(snapshots: list[dict]) -> float:
     return round(sum(sizes) / len(sizes), 2)
 
 
+def _avg_response_time(snapshots: list[dict]) -> float | None:
+    """Return average response time in seconds, or None if no data is available."""
+    times = [
+        s["response_time"]
+        for s in snapshots
+        if isinstance(s.get("response_time"), (int, float))
+    ]
+    if not times:
+        return None
+    return round(sum(times) / len(times), 4)
+
+
 def compute_stats(store_dir: str, endpoint: str, limit: int = 50) -> dict[str, Any]:
     """Return statistics for the *limit* most recent snapshots of *endpoint*."""
     names = list_snapshots(store_dir, endpoint)
@@ -60,6 +72,7 @@ def compute_stats(store_dir: str, endpoint: str, limit: int = 50) -> dict[str, A
         "status_counts": _status_counts(snapshots),
         "error_rate": _error_rate(snapshots),
         "avg_body_size_chars": _avg_body_size(snapshots),
+        "avg_response_time_seconds": _avg_response_time(snapshots),
         "first_timestamp": snapshots[0].get("timestamp") if snapshots else None,
         "last_timestamp": snapshots[-1].get("timestamp") if snapshots else None,
     }
