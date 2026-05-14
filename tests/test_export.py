@@ -47,6 +47,13 @@ def test_export_snapshot_json_respects_indent(base_snapshot):
     assert len(pretty) > len(compact)
 
 
+def test_export_snapshot_json_preserves_all_fields(base_snapshot):
+    """Ensure no fields are dropped or added during serialisation."""
+    result = export_snapshot_json(base_snapshot)
+    parsed = json.loads(result)
+    assert set(parsed.keys()) == set(base_snapshot.keys())
+
+
 # --- export_diff_markdown ---
 
 def test_export_diff_markdown_no_old_returns_baseline_note(base_snapshot):
@@ -71,6 +78,17 @@ def test_export_diff_markdown_with_changes(base_snapshot, changed_snapshot):
 def test_export_diff_markdown_no_endpoint_omits_dash(base_snapshot):
     result = export_diff_markdown(base_snapshot, base_snapshot)
     assert "—" not in result
+
+
+def test_export_diff_markdown_returns_string(base_snapshot, changed_snapshot):
+    """Return type should always be a plain string."""
+    for old, new in [
+        (None, base_snapshot),
+        (base_snapshot, base_snapshot),
+        (base_snapshot, changed_snapshot),
+    ]:
+        result = export_diff_markdown(old, new, endpoint="/status")
+        assert isinstance(result, str)
 
 
 # --- export_snapshots_csv ---
